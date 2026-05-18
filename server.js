@@ -121,6 +121,9 @@ async function checkLimit(req, res, next) {
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'landing.html')));
 app.get('/chat', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/auth', (req, res) => res.sendFile(path.join(__dirname, 'auth.html')));
+app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'about.html')));
+app.get('/about.html', (req, res) => res.sendFile(path.join(__dirname, 'about.html')));
+app.get('/landing.html', (req, res) => res.sendFile(path.join(__dirname, 'landing.html')));
 
 // User status
 app.get('/api/user-status', requireAuth, async (req, res) => {
