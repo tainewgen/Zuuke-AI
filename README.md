@@ -1,139 +1,36 @@
-# Zuuke AI — PC Build Assistant
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-An AI-powered PC build assistant with user authentication, daily message limits, and Stripe subscription billing.
+## Getting Started
 
----
-
-## Features
-
-- AI chat powered by Claude (Anthropic)
-- User sign up / login via Supabase Auth
-- Free plan: 10 messages/day
-- Pro plan: $5/month unlimited messages (Stripe)
-- Chat history saved locally
-- Streaming AI responses
-
----
-
-## Setup
-
-### 1. Clone the repo
+First, run the development server:
 
 ```bash
-git clone https://github.com/Spartan2516/Zuuke-AI.git
-cd Zuuke-AI
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-### 2. Install dependencies
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-```bash
-npm install
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### 3. Create your `.env` file
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```bash
-cp .env.example .env
-```
+## Learn More
 
-Fill in your keys in `.env`:
+To learn more about Next.js, take a look at the following resources:
 
-```
-ANTHROPIC_API_KEY=your_anthropic_key
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-STRIPE_SECRET_KEY=your_stripe_secret_key
-STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-PORT=3000
-```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-### 4. Set up Supabase database
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-Run this SQL in your Supabase project → SQL Editor:
+## Deploy on Vercel
 
-```sql
-create table profiles (
-  id uuid references auth.users(id) on delete cascade primary key,
-  first_name text,
-  last_name text,
-  stripe_customer_id text,
-  subscription_status text default 'free',
-  subscription_id text,
-  message_count_today integer default 0,
-  last_message_date date
-);
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-alter table profiles enable row level security;
-create policy "Users can view own profile" on profiles for select using (auth.uid() = id);
-create policy "Users can update own profile" on profiles for update using (auth.uid() = id);
-create policy "Service role can insert profiles" on profiles for insert with check (true);
-
-create or replace function handle_new_user()
-returns trigger as $$
-begin
-  insert into profiles (id, first_name, last_name)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'first_name', ''),
-    coalesce(new.raw_user_meta_data->>'last_name', '')
-  )
-  on conflict (id) do nothing;
-  return new;
-exception when others then
-  return new;
-end;
-$$ language plpgsql security definer;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure handle_new_user();
-```
-
-### 5. Start the server
-
-```bash
-npm start
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
----
-
-## Testing Stripe (sandbox)
-
-### Download Stripe CLI
-
-- **Windows**: Download `stripe_X.X.X_windows_x86_64.zip` from [github.com/stripe/stripe-cli/releases](https://github.com/stripe/stripe-cli/releases/latest), extract and run `stripe.exe`
-- **Mac**: `brew install stripe/stripe-cli/stripe`
-- **Linux**: See [Stripe CLI docs](https://stripe.com/docs/stripe-cli)
-
-### Forward webhooks locally
-
-```bash
-stripe login
-stripe listen --forward-to localhost:3000/api/stripe-webhook
-```
-
-Copy the `whsec_...` secret it prints and add it to your `.env` as `STRIPE_WEBHOOK_SECRET`, then restart the server.
-
-### Test card
-
-| Field | Value |
-|-------|-------|
-| Card number | `4242 4242 4242 4242` |
-| Expiry | Any future date |
-| CVC | Any 3 digits |
-| Name/ZIP | Anything |
-
----
-
-## API Keys
-
-| Key | Where to get it |
-|-----|----------------|
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) |
-| `SUPABASE_URL` + keys | Supabase project → Settings → API |
-| `STRIPE_*` keys | [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API keys |
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
